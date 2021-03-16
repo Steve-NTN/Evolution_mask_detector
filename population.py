@@ -106,6 +106,10 @@ class Population():
 
                 new_generation.append(one)
                 new_generation.append(two)
+            
+            k = np.random.choice(np.arange(len(scores)), size = 1, p = scores/scores.sum())
+            three = self.population[k, :].copy()
+            new_generation.append(three)
 
             self.population = np.array(new_generation)
             self.scores = self.eval_score()

@@ -74,12 +74,12 @@ class Individual:
         # init individual with 40 parameter
         indiv = np.array([0]*40)
 
-        # ______6 bit______|_____________8 bit x 3 = 24 bit____________|_________________10 bit__________________
-        # epoch|input|batch|filter|kernel|activ|pool |pool_size|padding|dropout|dense|activ|loss_f|optim|learn_r| 
-        # 2 bit|2 bit|2 bit|3 bit |1 bit |1 bit|1 bit|  1 bit  | 1 bit | 2 bit |3 bit|1 bit|1 bit |1 bit| 2 bit |
+        # ___6 bit___|_____________8 bit x 3 = 24 bit____________|_________________10 bit__________________
+        # epoch|batch|filter|kernel|activ|pool |pool_size|padding|dropout|dense|activ|loss_f|optim|learn_r| 
+        # 3 bit|3 bit|3 bit |1 bit |1 bit|1 bit|  1 bit  | 1 bit | 2 bit |3 bit|1 bit|1 bit |1 bit| 2 bit |
 
-        bit = [2, 2, 2] + [3, 1, 1, 1, 1, 1] * 3 + [2, 3, 1, 1, 1, 2]
-        param = [self.epoch, self.input_size, self.batch_size, self.filter_size_1, self.kernel_size_1,
+        bit = [3, 3] + [3, 1, 1, 1, 1, 1] * 3 + [2, 3, 1, 1, 1, 2]
+        param = [self.epoch, self.batch_size, self.filter_size_1, self.kernel_size_1,
                  self.pooling_1, self.pooling_size_1, self.activation_1, self.padding_1, self.filter_size_2, 
                  self.kernel_size_2, self.pooling_2, self.pooling_size_2, self.activation_2, self.padding_2, 
                  self.filter_size_3, self.kernel_size_3, self.pooling_3, self.pooling_size_3, self.activation_3, 
@@ -94,7 +94,7 @@ class Individual:
 
     # Get model 
     def individual_model(self, p, num_class, x_train, y_train, x_test, y_test): 
-        input_shape=(p['input'], p['input'], 3)
+        # input_shape=(p['input'], p['input'], 3)
 
         model = Sequential()
         # conv 1st
@@ -149,8 +149,9 @@ class Individual:
         return model
 
     def individual_decode(self, binary_gen):
-        input_size = [70, 120, 170, 220]
-        batch = [10, 15, 20, 25]
+        # input_size = [70, 120, 170, 220]
+        batch = [10, 15, 20, 25, 30, 35, 40, 45]
+        filter = [16, 32, 64, 86, 128, 172, 218, 256]
         kernel_size = [(3, 3), (5, 5)]
         pooling = ['max', 'average']
         pooling_size = [(2, 2), (3, 3)]
@@ -161,25 +162,25 @@ class Individual:
         learn_rate = [1e-2, 1e-3, 1e-4, 1e-5]
         optimizer = ['adamax', 'adam']
 
-        params = {'epoch': decode_gen(binary_gen[:2]) + 5,                             
-                'input': input_size[decode_gen(binary_gen[2:4])],                 
-                'batch': batch[decode_gen(binary_gen[4:6])],                      
+        params = {'epoch': decode_gen(binary_gen[:3]) + 4,                             
+                # 'input': input_size[decode_gen(binary_gen[2:4])],                 
+                'batch': batch[decode_gen(binary_gen[3:6])],                      
                 # conv 1st (8 bit)
-                'filter_1': decode_gen(binary_gen[6:9]) + 30,                 
+                'filter_1': filter[decode_gen(binary_gen[6:9])],                 
                 'kernel_1': kernel_size[decode_gen(binary_gen[9:10])],          
                 'pooling_1': pooling[decode_gen(binary_gen[10:11])],                 
                 'pooling_size_1': pooling_size[decode_gen(binary_gen[11:12])],  
                 'activation_1': activation[decode_gen(binary_gen[12:13])],        
                 'padding_1': padding[decode_gen(binary_gen[13:14])],               
                 # conv 2nd (8 bit)
-                'filter_2': decode_gen(binary_gen[14:17]) + 60,
+                'filter_2': filter[decode_gen(binary_gen[14:17])],
                 'kernel_2': kernel_size[decode_gen(binary_gen[17:18])],
                 'pooling_2': pooling[decode_gen(binary_gen[18:19])],
                 'pooling_size_2': pooling_size[decode_gen(binary_gen[19:20])],
                 'activation_2': activation[decode_gen(binary_gen[20:21])],
                 'padding_2': padding[decode_gen(binary_gen[21:22])],
                 # conv 3th (8 bit)
-                'filter_3': decode_gen(binary_gen[22:25]) + 120,
+                'filter_3': filter[decode_gen(binary_gen[22:25])],
                 'kernel_3': kernel_size[decode_gen(binary_gen[25:26])],
                 'pooling_3': pooling[decode_gen(binary_gen[26:27])],
                 'pooling_size_3': pooling_size[decode_gen(binary_gen[27:28])],
@@ -189,7 +190,7 @@ class Individual:
                 # 2 bit
                 'dropout_1': dropout[decode_gen(binary_gen[30:32])],
                 # 3 bit
-                'dense_1': decode_gen(binary_gen[32:35]) + 250,
+                'dense_1': filter[decode_gen(binary_gen[32:35])],
                 # 1 bit
                 'activation_4': activation[decode_gen(binary_gen[35:36])],
                 'activation_5': 'softmax',
@@ -202,4 +203,3 @@ class Individual:
                 'learn_rate': learn_rate[decode_gen(binary_gen[38:40])] 
                 }
         return params
-        
